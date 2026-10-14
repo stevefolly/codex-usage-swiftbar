@@ -2,9 +2,7 @@
 
 A small Python plugin that shows your Codex five-hour and weekly usage in the macOS menu bar using [SwiftBar](https://swiftbar.app/).
 
-```text
-5h 23% · 7d 41%
-```
+![Codex Usage in SwiftBar showing the menu bar indicator and usage details](screenshot.png)
 
 Open the menu to see usage and remaining capacity for each window, progress bars, reset times in your local timezone, and your plan type.
 
