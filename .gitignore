@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# macOS
+.DS_Store
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Local usage cache, if copied into the repository
+rate-limits.json
+rate-limits.tmp
