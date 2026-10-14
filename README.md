@@ -103,6 +103,8 @@ Bug reports and improvements are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
+The repository includes syntax checks for both GitHub Actions and GitLab CI, so the same files can be published on either platform. GitLab CI targets GitLab.com's shared Linux runners using the `saas-linux-small-amd64` tag; enable instance runners for the GitLab project. These checks do not require Codex credentials.
+
 ## Licence
 
 This project is licensed under the [MIT licence](LICENSE).
