@@ -32,6 +32,10 @@ CACHE_PATH = (
     / "SwiftBarCodexUsage"
     / "rate-limits.json"
 )
+NOTIFICATION_STATE_PATH = CACHE_PATH.with_name("notifications.json")
+NOTIFICATION_THRESHOLD = 90
+# Temporary testing switch: set to False to restore once-per-window alerts.
+NOTIFICATION_TEST_MODE = False
 
 
 def find_codex() -> str:
@@ -152,6 +156,49 @@ def clamp_percent(value: Any) -> int:
     return max(0, min(100, round(float(value))))
 
 
+def notify_usage(limits: dict[str, Any]) -> None:
+    """Notify once per reset window, persisting state across refreshes."""
+    try:
+        state = json.loads(NOTIFICATION_STATE_PATH.read_text(encoding="utf-8"))
+        if not isinstance(state, dict):
+            state = {}
+    except (OSError, ValueError):
+        state = {}
+
+    for key, label in (("primary", "Five-hour"), ("secondary", "Weekly")):
+        window = limits[key]
+        reset = window["resetsAt"]
+        if not NOTIFICATION_TEST_MODE and float(window["usedPercent"]) < NOTIFICATION_THRESHOLD:
+            continue
+        if not NOTIFICATION_TEST_MODE and state.get(key) == reset:
+            continue
+        message = (
+            f"{label} usage has reached {clamp_percent(window['usedPercent'])}%.\n"
+            f"Resets {reset_text(reset)}."
+        )
+        try:
+            subprocess.run(
+                [
+                    "osascript", "-e",
+                    f'display notification {json.dumps(message)} with title "Codex Usage"',
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=TIMEOUT_SECONDS,
+            )
+            if NOTIFICATION_TEST_MODE:
+                continue
+            state[key] = reset
+            NOTIFICATION_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            temporary = NOTIFICATION_STATE_PATH.with_suffix(".tmp")
+            temporary.write_text(json.dumps(state), encoding="utf-8")
+            temporary.replace(NOTIFICATION_STATE_PATH)
+        except (OSError, subprocess.SubprocessError):
+            # Notification failures must not prevent the usage display.
+            continue
+
+
 def colour(percent: int) -> str:
     if percent >= 85:
         return "#E5484D"
@@ -230,7 +277,9 @@ def render_error(error: Exception) -> None:
 
 def main() -> int:
     try:
-        render(query_usage())
+        limits = query_usage()
+        notify_usage(limits)
+        render(limits)
     except Exception as error:
         cached = load_cache()
         if cached:

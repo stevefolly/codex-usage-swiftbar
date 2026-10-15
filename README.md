@@ -11,6 +11,7 @@ Open the menu to see usage and remaining capacity for each window, progress bars
 - Refreshes every minute, or with a **Refresh now** menu item.
 - Colours the menu bar indicator according to the higher of the two usage percentages: green below 60%, amber from 60%, and red from 85%.
 - Shows both a countdown and a local date and time for each reset.
+- Sends a macOS notification when either window reaches 90% usage, once per window until that window resets. Notifications use fresh usage data only.
 - Falls back to cached usage when a refresh fails, with an amber menu bar indicator, a warning symbol, and the time of the last successful update.
 - Uses only the Python standard library; no Python packages to install.
 
@@ -83,6 +84,8 @@ Successful responses are saved locally at:
 ```
 
 The cache contains the returned rate-limit data and a save timestamp. If a refresh fails, cached data up to 24 hours old can be displayed. Older data is ignored, but the cache file is not automatically deleted.
+
+Notification history is stored alongside the cache in `notifications.json`, using each window's reset time to avoid repeat notifications across refreshes and script restarts.
 
 Keep the cache out of public repositories. Menu screenshots can reveal usage, plan details, and reset times; error messages may also contain local paths or details returned by the CLI.
 
